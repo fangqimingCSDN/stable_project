@@ -37,6 +37,7 @@ sudo yum install mesa-libGL
 方案1：
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 方案2：（优选）
+git clone https://github.moeyy.xyz/https://github.com/fangqimingCSDN/stable_project.git
 本地仓库维护
 本地仓库做如下修改
 Launch.py文件中https://github.com  修改为 https://github.moeyy.xyz/https://github.com 提高下载文件的速度
