@@ -1,0 +1,128 @@
+Stable-Diffusion-WebUI 搭建使用教程
+
+简介：
+Stable-Diffusion-Webui 是一个基于Gradio库的Stable Diffusion的浏览器界面，可以说是AI绘画集合体，支持目前主流的开源AI绘画模型，Hugging Face（https://huggingface.co）和civitai(C站-https://civitai.pro/（中文网）；https://civitai.com/)等，有了它，我们就可以很方便地配置和生成AI绘画作品，并且进行各种精细地配置。
+
+
+一、	搭建指南
+环境配置：
+Centos7版本
+CentOS Linux release 7.9.2009 (Core)
+内核版本：
+3.10.0-862.el7.x86_64
+
+推荐配置12GB以上显存容量
+推荐配置25GB内存
+推荐配置60GB以上磁盘空间
+推荐配置显卡芯片N卡型号建议RTX4050、RTX3060、RTX4060
+
+安装Python 3.10.5和git
+安装连接
+https://blog.csdn.net/zltliqi/article/details/126449120
+安装需要的依赖；
+yum install libffi-devel
+yum -y install bzip2 bzip2-devel
+yum -y install sqlite-devel
+pip安装可以使用以下源
+--default-timeout=100 -i https://pypi.tuna.tsinghua.edu.cn/simple
+ -i http://pypi.douban.com/simple/  --trusted-host pypi.douban.com
+Git 要求大于2.0版本
+注意：
+ModuleNotFoundError: No module named '_lzma'
+sudo yum install xz-devel   //需要重新编译python3.10
+import cv2 报错 invalid ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+sudo yum install mesa-libGL
+
+下载stable-diffusion-webui源码
+方案1：
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+方案2：（优选）
+本地仓库维护
+本地仓库做如下修改
+Launch.py文件中https://github.com  修改为 https://github.moeyy.xyz/https://github.com 提高下载文件的速度
+
+将模型文件放在项目根目录下的models/Stable-diffusion文件夹里
+https://huggingface.co 截止23年7月 最新模型sd-2-1.ckpt版本
+https://civitai.pro/
+https://civitai.com/  （优选）
+下载喜欢的风格模型， 到目录中models/Stable-diffusion/中
+
+
+运行 webui.sh或者launch.py启动
+建议先执行./webui.sh -f --skip-torch-cuda-test --no-half
+进而再次执行python3 -u launch.py --no-half --port 7860 --listen --api --api-log --skip-torch-cuda-test --no-gradio-queue > launch.log 2>&1
+
+启动参数配置说明
+--no-half
+不要将模型切换到16位浮点数，推荐设置
+--listen
+以0.0.0.0作为服务器名启动grado，允许响应网络请求
+--port 7860
+设置端口
+--no-gradio-queue
+禁用梯度队列;导致网页使用HTTP请求而不是websockets;是早期版本的默认值吗
+如果不设置 会使用websockets协议，
+--nowebui
+使用api=True来启动api而不是web
+--api
+Api和web一起运行
+--api-log
+记录api请求日志
+--medvram
+建议 4G 的显卡加上 --medvram 启动参数，2G 的显卡加上 --lowvram 启动参数。
+注意：
+1.	启动前， 先下载好权重文件models/Stable-diffusion目录下
+2.	首次启动会自动下载一些 Python 依赖库（具体哪些库请看工程下的 requirements.txt） ，以及项目需要用到的配置和模型文件
+3.	初始化一次之后，下次启动就快了
+
+其他参数项说明：
+命令行参数	解释
+=--share	online运行，也就是public address
+=--listen	使服务器侦听网络连接。这将允许本地网络上的计算机访问UI。
+=--port	更改端口，默认为端口7860。
+=--xformers	使用xformers库。极大地改善了内存消耗和速度。Windows 版本安装由C43H66N12O12S2 维护的二进制文件
+=--force-enable-xformers	无论程序是否认为您可以运行它，都启用 xformers。不要报告你运行它的错误。
+=--opt-split-attention	Cross attention layer optimization 优化显着减少了内存使用，几乎没有成本（一些报告改进了性能）。黑魔法。默认情况下torch.cuda，包括 NVidia 和 AMD 卡。
+=--disable-opt-split-attention	禁用上面的优化
+=--opt-split-attention-V1	使用上述优化的旧版本，它不会占用大量内存（它将使用更少的 VRAM，但会限制您可以制作的最大图片大小）。
+=--medvram	通过将稳定扩散模型分为三部分，使其消耗更少的VRAM，即cond（用于将文本转换为数字表示）、first_stage（用于将图片转换为潜在空间并返回）和unet（用于潜在空间的实际去噪），并使其始终只有一个在VRAM中，将其他部分发送到CPU RAM。降低性能，但只会降低一点-除非启用实时预览。
+=--lowvram	对上面更彻底的优化，将 unet 拆分成多个模块，VRAM 中只保留一个模块,破坏性能
+*do-not-batch-cond-uncond	防止在采样过程中对正面和负面提示进行批处理，这基本上可以让您以 0.5 批量大小运行，从而节省大量内存。降低性能。不是命令行选项，而是使用–medvramor 隐式启用的优化–lowvram。
+=--always-batch-cond-uncond	禁用上述优化。只有与–medvram或–lowvram一起使用才有意义
+=--opt-channelslast	更改 torch 内存类型，以稳定扩散到最后一个通道，效果没有仔细研究。
+
+
+
+在浏览器中输入 http://xxxxxxx:7860 打开SD页面
+
+
+
+页面功能解释
+txt2img（文转图）
+prompt：对于图像进行描述，有内容风格等信息进行描述。
+
+Negative prompt：提供给模型我不想要什么样的风格
+
+Sampling Steps：diffusion model 生成图片的迭代步数，每多一次迭代都会给 AI 更多的机会去比对 prompt 和当前结果，去调整图片。更高的步数需要花费更多的计算时间，但不一定意味着更好的结果。当然迭代步数不足（少于 50）肯定会降低结果的图像质量；
+
+Sampling method：扩散去噪算法的采样模式，不同的采样模式会带来不一样的效果
+
+Width、Height：图像长宽，可以通过send to extras 进行扩大，所以这里不建议设置太大[显存小的特别注意]；
+
+Restore faces：优化面部，绘制面部图像特别注意
+
+Tiling：生成一个可以平铺的图像
+
+Highres. fix：使用两个步骤的过程进行生成，以较小的分辨率创建图像，然后在不改变构图的情况下改进其中的细节，选择该部分会有两个新的参数 Scale、latent 在潜空间中对图像进行缩放。另一种方法是从潜在的表象中产生完整的图像，将其升级，然后将其移回潜在的空间。Denoising strength 决定算法对图像内容的保留程度。为0时，什么都不会改变，而为1时，你会得到一个不相关的图像；
+
+Batch count、 Batch size：都是生成几张图，前者计算时间长，后者需要显存大；
+
+CFG Scale：分类器自由引导尺度——图像与提示符的一致程度——越低的值产生越有创意的结果；
+
+Seed：种子，只要种子值一样，参数一致、模型一样图像就能重新
+
+推荐链接：
+https://zhuanlan.zhihu.com/p/617997179
+https://blog.csdn.net/qq_42714262/article/details/119706383
+https://www.yii666.com/blog/383019.html
+
